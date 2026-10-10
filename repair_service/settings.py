@@ -9,7 +9,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://fixdesk_db_vv42_user:FhW4
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-only-change-me-before-deployment")
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() == "false"
-ALLOWED_HOSTS = [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "https://fixdesksystem.netlify.app").split(",") if h.strip()]
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "backend-computer-repair-system.onrender.com").split(",") if h.strip()]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
