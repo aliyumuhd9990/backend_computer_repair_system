@@ -1,12 +1,15 @@
 import os
+import dj_database_url
 from pathlib import Path
 from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://fixdesk_db_vv42_user:FhW4EcJvQ3CqqeJr5gpCT0EED4ua1BKE@dpg-db54ia3bc2fs73ea7n2g-a/fixdesk_db_vv42").strip()
+
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-only-change-me-before-deployment")
-DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() == "true"
-ALLOWED_HOSTS = [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",") if h.strip()]
+DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() == "false"
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "https://fixdesksystem.netlify.app", "localhost", "127.0.0.1",).split(",") if h.strip()]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -24,6 +27,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -51,12 +55,26 @@ TEMPLATES = [{
 WSGI_APPLICATION = "repair_service.wsgi.application"
 ASGI_APPLICATION = "repair_service.asgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if os.getenv("DATABASE_URL"):
+    DATABASES = {
+        "default": dj_database_url.config(
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+
+CORS_ALLOWED_ORIGINS = [
+    "https://fixdesksystem.netlify.app",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
 
 AUTH_USER_MODEL = "core.User"
 
@@ -77,10 +95,6 @@ MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
 # Restrict CORS to known frontend origins in production.
 CORS_ALLOW_CREDENTIALS = True
 
@@ -115,5 +129,15 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
 }
 
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": (
+            "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        ),
+    },
+}
 # For local development only. Use a real secret, HTTPS, secure cookies, and
 # production database settings before deployment.
